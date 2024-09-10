@@ -1,34 +1,32 @@
 import express from 'express';
-import { getAuthUrl, getToken, setCredentials, oauth2Client } from './authService';
-import { processEmail as processGmailEmail } from './emailService';
-import { config } from './config';
-import './auto'; 
+import { getAuthUrl, getToken, setCredentials } from './authService';
+import { emailQueue } from './queue';
 import cron from 'node-cron';
 import fs from 'fs';
-import http from 'http'; // Import the HTTP module to integrate WebSocket with Express
-import WebSocket, { Server } from 'ws'; // Import WebSocket
+import http from 'http';
+import WebSocket from 'ws';
 import axios from 'axios';
 import puppeteer from 'puppeteer';
 
 const app = express();
 const port = 3000;
-const server = http.createServer(app); // Create an HTTP server for Express and WebSocket
+const server = http.createServer(app);
 
-// File to store Gmail tokens (update this path to secure storage in production)
+// File to store Gmail tokens
 const TOKEN_PATH = './gmail-token.json';
 
-// Load stored tokens from a file (if available)
+// Load stored tokens from a file
 const loadTokens = () => {
   if (fs.existsSync(TOKEN_PATH)) {
     const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
-    setCredentials(tokens);  // Set tokens in oauth2Client
+    setCredentials(tokens);
     console.log('Tokens loaded from file.');
   } else {
     console.log('No stored tokens found.');
   }
 };
 
-// Save tokens to a file for reuse
+// Save tokens to a file
 const saveTokens = (tokens: any) => {
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
   console.log('Tokens saved to file.');
@@ -36,22 +34,22 @@ const saveTokens = (tokens: any) => {
 
 // Schedule email processing every minute using cron
 cron.schedule('* * * * *', async () => {
-  console.log('Running the automated Gmail email processing job...');
+  console.log('Scheduling email processing job...');
   try {
-    const result = await processGmailEmail();
-    console.log('Processed Gmail email:', result);
+    // Add a job to the queue
+    await emailQueue.add('process-email', {});
   } catch (error) {
-    console.error('Error processing Gmail email:', error);
+    console.error('Error scheduling email processing job:', error);
   }
 });
 
-// Endpoint to initiate manual authentication (first-time login)
+// Endpoint to initiate manual authentication
 app.get('/auth/gmail', (req, res) => {
   const authUrl = getAuthUrl();
   res.redirect(authUrl);
 });
 
-// Callback to handle OAuth token exchange after user authorizes
+// Callback to handle OAuth token exchange
 app.get('/auth/gmail/callback', async (req, res) => {
   const code = req.query.code as string;
   try {
@@ -66,12 +64,12 @@ app.get('/auth/gmail/callback', async (req, res) => {
 });
 
 // WebSocket setup
-const wss = new Server({ server }); // Attach WebSocket server to the HTTP server
+const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws: WebSocket) => {
   console.log('WebSocket client connected');
 
-  ws.on('message', (message: string) => {
+  ws.on('message', (message: WebSocket.MessageEvent) => {
     console.log(`Received: ${message}`);
   });
 
@@ -96,7 +94,7 @@ wss.on('connection', (ws: WebSocket) => {
     }
   };
 
-  setInterval(checkForNewEmail, 60000); // Check for new emails every minute
+  setInterval(checkForNewEmail, 60000);
 });
 
 const automateLogin = async () => {
@@ -127,6 +125,6 @@ const categorizeEmail = async () => {
 // Start the server and load existing tokens
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-  loadTokens();  // Load tokens on server start
+  loadTokens();
   console.log('Automated email processing and WebSocket server are active.');
 });
