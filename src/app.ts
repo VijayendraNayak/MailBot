@@ -20,42 +20,37 @@ const loadTokens = () => {
   if (fs.existsSync(TOKEN_PATH)) {
     const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
     setCredentials(tokens);
-    // console.log('Tokens loaded from file.');
+    console.log('Tokens loaded from file.');
   } else {
-    // console.log('No stored tokens found.');
+    console.log('No stored tokens found.');
   }
 };
 
-// Save tokens to a file
 const saveTokens = (tokens: any) => {
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
-  // console.log('Tokens saved to file.');
+   console.log('Tokens saved to file.');
 };
 
 // Schedule email processing every minute using cron
 cron.schedule('* * * * *', async () => {
   // console.log('Scheduling email processing job...');
   try {
-    // Add a job to the queue
     await emailQueue.add('process-email', {});
   } catch (error) {
-    // console.error('Error scheduling email processing job:', error);
   }
 });
 
-// Endpoint to initiate manual authentication
 app.get('/auth/gmail', (req, res) => {
   const authUrl = getAuthUrl();
   res.redirect(authUrl);
 });
 
-// Callback to handle OAuth token exchange
 app.get('/auth/gmail/callback', async (req, res) => {
   const code = req.query.code as string;
   try {
     const tokens = await getToken(code);
     setCredentials(tokens);
-    saveTokens(tokens); // Save tokens for future use
+    saveTokens(tokens); 
     res.send('Gmail authentication successful!');
   } catch (error) {
     console.error('Gmail authentication failed:', error);

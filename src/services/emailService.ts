@@ -85,13 +85,11 @@ export async function processEmail(serverStartTime: Date) {
 
     const emailDate = new Date(Number(email.internalDate));
 
-    // Filter emails based on server start time
     if (emailDate < serverStartTime) {
       console.log('Email received before server started. Skipping.');
       return 'Email received before server started.';
     }
 
-    // Process the email as per your logic
     const subject = email.payload?.headers?.find(h => h.name?.toLowerCase() === 'subject')?.value || 'No Subject';
     const content = email.snippet || '';
     const sender = email.payload?.headers?.find(h => h.name?.toLowerCase() === 'from')?.value || '';

@@ -1,11 +1,11 @@
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
-import { getLatestEmail } from '../services/emailService'; // Make sure to import your services
+import { getLatestEmail } from '../services/emailService';
 
 const redis = new Redis({
   host: 'localhost',
   port: 6379,
-  password: 'manvswild75', // Your Redis password
+  password: 'manvswild75',
   maxRetriesPerRequest: null,
 });
 
