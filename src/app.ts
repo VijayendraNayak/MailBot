@@ -1,6 +1,6 @@
 import express from 'express';
-import { getAuthUrl, getToken, setCredentials } from './authService';
-import { emailQueue } from './queue';
+import { getAuthUrl, getToken, setCredentials } from './services/authService';
+import { emailQueue } from './bullmq/queue';
 import cron from 'node-cron';
 import fs from 'fs';
 import http from 'http';
@@ -20,26 +20,26 @@ const loadTokens = () => {
   if (fs.existsSync(TOKEN_PATH)) {
     const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
     setCredentials(tokens);
-    console.log('Tokens loaded from file.');
+    // console.log('Tokens loaded from file.');
   } else {
-    console.log('No stored tokens found.');
+    // console.log('No stored tokens found.');
   }
 };
 
 // Save tokens to a file
 const saveTokens = (tokens: any) => {
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
-  console.log('Tokens saved to file.');
+  // console.log('Tokens saved to file.');
 };
 
 // Schedule email processing every minute using cron
 cron.schedule('* * * * *', async () => {
-  console.log('Scheduling email processing job...');
+  // console.log('Scheduling email processing job...');
   try {
     // Add a job to the queue
     await emailQueue.add('process-email', {});
   } catch (error) {
-    console.error('Error scheduling email processing job:', error);
+    // console.error('Error scheduling email processing job:', error);
   }
 });
 
@@ -103,7 +103,7 @@ const automateLogin = async () => {
     const page = await browser.newPage();
     await page.goto('http://localhost:3000/auth/gmail');
     await page.waitForSelector('input[type="email"]');
-    await page.type('input[type="email"]', 'vijayendranayak19@gmail.com');
+    await page.type('input[type="email"]', 'vijayendranayak1910@gmail.com');
     await page.click('#identifierNext');
     await page.waitForNavigation();
     console.log('Login successful');

@@ -1,9 +1,9 @@
 import { google } from 'googleapis';
-import { config } from './config';
+import { config } from '../config';
 
-console.log('Client ID:', config.gmail.clientId);
-console.log('Client Secret:', config.gmail.clientSecret ? '[REDACTED]' : 'Missing');
-console.log('Redirect URI:', config.gmail.redirectUri);
+// console.log('Client ID:', config.gmail.clientId);
+// console.log('Client Secret:', config.gmail.clientSecret ? '[REDACTED]' : 'Missing');
+// console.log('Redirect URI:', config.gmail.redirectUri);
 
 const oauth2Client = new google.auth.OAuth2(
   config.gmail.clientId,
@@ -16,7 +16,7 @@ export const getAuthUrl = () => {
     access_type: 'offline',
     scope: ['https://www.googleapis.com/auth/gmail.modify'],
   });
-  console.log('Generated Auth URL:', url);
+  // console.log('Generated Auth URL:', url);
   return url;
 };
 
