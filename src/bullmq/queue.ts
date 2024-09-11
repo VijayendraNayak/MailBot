@@ -1,29 +1,29 @@
-import { Queue } from 'bullmq';
+import { Queue, Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { getLatestEmail } from '../services/emailService';
+import { processEmail } from '../services/emailService'; // Use the correct function
 
+// Configure Redis client
 const redis = new Redis({
   host: 'localhost',
   port: 6379,
-  password: 'manvswild75',
+  password: 'manvswild75', // Add your Redis password here
   maxRetriesPerRequest: null,
 });
 
+// Define queue
 const emailQueue = new Queue('emailQueue', { connection: redis });
 
-export async function queueEmailJob() {
+// Worker for processing email jobs
+const emailWorker = new Worker('emailQueue', async (job: Job) => {
+  console.log(`Processing job: ${job.id}`);
   try {
-    const email = await getLatestEmail();
-
-    if (email) {
-      console.log('Unread email found, queuing job...');
-      await emailQueue.add('process-email', { emailId: email.id });
-    } else {
-      console.log('No unread emails found, not queuing any job.');
-    }
+    // Handle job processing
+    const result = await processEmail();
+    console.log('Processed email:', result);
   } catch (error) {
-    console.error('Error checking for unread emails:', error);
+    console.error('Error processing email:', error);
+    throw error; // BullMQ will handle retries
   }
-}
+}, { connection: redis });
 
-export { emailQueue };
+export { emailQueue, emailWorker };

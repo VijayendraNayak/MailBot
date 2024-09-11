@@ -1,4 +1,3 @@
-
 import { google } from 'googleapis';
 import { oauth2Client } from './authService';
 import { categorizeEmail, generateResponse } from './aiService';
@@ -73,23 +72,9 @@ export async function applyLabelToEmail(emailId: string, labelName: string) {
   }
 }
 
-
-export async function processEmail(serverStartTime: Date) {
+export async function processEmail() {
   try {
-    const email = await getLatestEmail(); // Fetch the latest unread email
-
-    if (!email) {
-      console.log('No unread messages found');
-      return 'No unread messages found';
-    }
-
-    const emailDate = new Date(Number(email.internalDate));
-
-    if (emailDate < serverStartTime) {
-      console.log('Email received before server started. Skipping.');
-      return 'Email received before server started.';
-    }
-
+    const email = await getLatestEmail();
     const subject = email.payload?.headers?.find(h => h.name?.toLowerCase() === 'subject')?.value || 'No Subject';
     const content = email.snippet || '';
     const sender = email.payload?.headers?.find(h => h.name?.toLowerCase() === 'from')?.value || '';

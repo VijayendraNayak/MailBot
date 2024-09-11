@@ -16,7 +16,7 @@ export const getAuthUrl = () => {
     access_type: 'offline',
     scope: ['https://www.googleapis.com/auth/gmail.modify'],
   });
-  // console.log('Generated Auth URL:', url);
+  console.log('Generated Auth URL:', url);
   return url;
 };
 
